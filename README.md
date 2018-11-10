@@ -2,7 +2,7 @@
 
 ## 0[安装配置](setup.md)
 
-## 第一部分 [测试驱动开发](P1TDD_DjangoBase/P1TDD)
+## 第一部分 [测试驱动开发](P1TDD_DjangoBase/P1TDD.md)
 
 ---
 

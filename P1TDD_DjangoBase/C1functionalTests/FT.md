@@ -174,6 +174,14 @@ geckodriver.log
 。。。要自己加[Alias](https://git-scm.com/book/en/v2/Git-Basics-Git-Aliases)，
 
 ```shell
+$ git config --global alias.co checkout
+$ git config --global alias.br branch
+$ git config --global alias.ci commit
+$ git config --global alias.st status
+```
+
+
+``` shell
 # git rm -r --cached
 $ git add .
 $ git status
