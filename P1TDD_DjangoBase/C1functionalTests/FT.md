@@ -256,4 +256,9 @@ Branch 'master' set up to track remote branch 'master' from 'origin'.
 
 吃个鸡庆祝下？
 
+```shell
+git add .
+git st
+git commit -m "added"
+git push
 ```

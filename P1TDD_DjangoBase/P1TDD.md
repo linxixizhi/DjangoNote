@@ -12,4 +12,5 @@
 ### 分章节
 
 - [使用功能测试协助安装Django](C1functionalTests/FT.md)
-- 
+- ...
+
