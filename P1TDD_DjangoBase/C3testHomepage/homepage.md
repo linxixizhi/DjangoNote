@@ -413,4 +413,28 @@ $ git log --oneline
 
 ![](E:\application\websites\django\TestCaprineDjango\P1TDD_DjangoBase\C3testHomepage\gitdiff.PNG)
 
-`git log --oneline`
+`git log --oneline`，有乱码
+
+```
+2b57ae1 (HEAD -> master) <E4><B8><80><E5><A4><A9><E8><A2><AB><E6><B5><8B><E8><AF><95><E8><99><90>
+<E4><BA><86><E5><A5><BD><E5><87><A0><E9><81><8D><EF><BC><8C><E4><BD><86><E6><88><91><E7><9F><A5><E9><81><93><E8><BF><99><E6><98><AF><E6><9C><89><E7><94><A8><E7><9A><84>
+af5c9f2 (origin/master) First unit test and url mapping, dummy view
+be2ac47 Add the note of chapter 2, write the first unittest and use the unittest packet.
+d6d4645 fixed two bugs
+0728cf1 fix some bugs
+be6e2ab added
+33ef4b9 This is about django study.
+```
+
+### 进入git bash
+
+![](E:\application\websites\django\TestCaprineDjango\P1TDD_DjangoBase\C3testHomepage\openbash.PNG)
+
+![](E:\application\websites\django\TestCaprineDjango\P1TDD_DjangoBase\C3testHomepage\gitbash.PNG)
+
+```bash
+git config --global i18n.logoutputencoding utf-8
+```
+
+[参考网站](https://segmentfault.com/a/1190000000578037)，但目前，`powershell`里的乱码无解。
+

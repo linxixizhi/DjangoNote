@@ -27,6 +27,12 @@
 > ```
 > 测试所有软件是否正确安装的方法是，打开Git Bash 命令提示符，在任意一个文件夹中执行命令python 或pip。
 
+本人按上方的方法配置后，依旧不能用workon启动虚拟环境，只能用source（或.)直接启动。
+
+```
+. /d/PyVirtualenv/django2.0/Scripts/activate
+```
+
 ### django1.11的虚拟环境配置
 
 - （后文不用）
