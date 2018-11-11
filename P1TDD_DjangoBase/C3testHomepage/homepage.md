@@ -277,11 +277,140 @@ git diff
 git commit -am "First unit test and url mapping, dummy view"
 ```
 
+## 为视图编写单元测试
+
+需求：
+
+- 函数不能pass，要返回真正的HTML函数；
+- 为视图编写相关测试
+
+### *lists/tests.py*
+
+```python
+from django.urls import resolve
+from django.test import TestCase
+from django.http import HttpRequest
+
+from lists.views import home_page
+
+class HomePageTest(TestCase):
+    
+    def test_root_url_resolves_to_home_page_view(self):
+        found = resolve('/')
+        self.assertEqual(found.func, home_page)
+
+    def test_home_page_returns_correct_html(self):
+        request = HttpRequest()  # 1
+        response = home_page(request)  # 2
+        html = response.content.decode('utf8')  # 3
+        self.assertTrue(html.startswith('<html>'))  # 4
+        self.assertIn('<title>To-Do lists</title>', html)  # 5
+        self.assertTrue(html.endswith('</html>'))  # 4
+```
+
+1. 创建`HttpRequest`对象，被请求网页时，Django收到的就是它；
+2. 将`HttpRequest`传入`home_page`视图，得到响应——`HttpResponse`
+3. 用`.content`提取response中的内容——或许时0011110...10110001？然后用`.decode()`将这种原始字节转换为发给用户的HTML字符串。
+4. 希望网页以`<html>`开头，以`</html>`结尾
+5. 希望响应中有一个`<title>`标签，其内容包含单词“To-Do lists”。
+
+运行单元测试吧，不出意外：
+
+```
+TypeError: home_page() takes 0 positional arguments but 1 was given
+```
+
+home_page()后面没有参数，但我们给了一个。
+
+## 单元测试/编写代码循环
+
+现在要开始适应TDD这种“单元测试/编写代码”的循环了：
+
+1. 在终端运行单元测试，看它们时如何失败的；
+2. 在编辑器中改动**最少**量的代码，让当前失败的测试通过。
+3. 回到1
+
+好像工作量很大，初期也是如此。但是这会减少许多排错时间，且熟练后小步走，编写速度也会很快。
+
+接下来，我们开始快步走，代码也只是局部改动：
+
+### *lists/views.py*
+
+```python
+def home_page(request):
+    pass
+```
+
+- 运行测试
+
+```
+    html = response.content.decode('utf8')  # 3
+AttributeError: 'NoneType' object has no attribute 'content'
+```
+
+- 编写代码
+
+> *lists/views.py*
+
+```python
+from django.http import HttpResponse
+
+def home_page(request):
+    return HttpResponse()
+```
+
+- 测试
+
+```
+    html = response.content.decode('utf8')  # 3
+AttributeError: 'HttpRequest' object has no attribute 'content'
+```
+
+- 编。。
+
+```python
+def home_page(request):
+    return HttpResponse('<html><title>To-Do lists</title></html>')
+```
+
+- 测。。
+
+OK!!!其实是不耐烦了一连三步，详情看http://www.ituring.com.cn/book/tupubarticle/22548。
+
+### 功能测试
+
+先启动django，后运行功能测试：
+
+```
+F
+======================================================================
+FAIL: test_can_start_a_list_and_retrieve_it_later (__main__.NewVistorTest)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "functional_tests.py", line 18, in test_can_start_a_list_and_retrieve_it_later
+    self.fail('Finish the test!')
+AssertionError: Finish the test!
+
+----------------------------------------------------------------------
+Ran 1 test in 7.145s
+
+FAILED (failures=1)
+```
+
+还是错了？？？？哦，是那个自己设置的错。。。django一端报错也挺多。
 
 
 
+## git
 
+```shell
+$ git diff
+$ git commit -am "Basic view now returns minimal HTML"
+$ git log --oneline
+```
 
+`git diff`会显示一些tests.py中新增的文本，以及view中一些奇奇怪怪的玩意。按q就退出了，大概是vim形态。
 
+![](E:\application\websites\django\TestCaprineDjango\P1TDD_DjangoBase\C3testHomepage\gitdiff.PNG)
 
-
+`git log --oneline`
