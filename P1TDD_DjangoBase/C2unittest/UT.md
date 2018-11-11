@@ -216,7 +216,7 @@ FAILED (failures=1)
 
 你可以找找看，运行几个测试，几个失败了，还有`assertIn`的作用是什么...
 
-## 2.3 git
+## 2.3 git、小结
 
 ```shell
 git status
@@ -225,3 +225,12 @@ git add .
 git commit -am "Add the note of chapter 2, write the first ut and use the unittest packet. "# -a参数自动添加已跟踪文件的改动，若无新增文件，可用此参数而去掉git add的步骤
 ```
 
+现在到哪里了？测试完备、需求明确、可以真正开始写代码了！
+
+有用的TDD概念，添加到Anki中
+
+用户故事
+从用户的角度描述应用应该如何运行。用来组织功能测试。
+
+预期失败
+意料之中的失败
