@@ -12,5 +12,6 @@
 ### 分章节
 
 - [使用功能测试协助安装Django](C1functionalTests/FT.md)
+- [使用unittest模块拓展功能测试](C2unittest/UT.md)
 - ...
 
