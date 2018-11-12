@@ -26,4 +26,5 @@
 - 下载解压[geckodriver.exe](https://github.com/mozilla/geckodriver/releases) 放到Python 的Scripts （真实环境）文件夹中。可在命令行中使用`geckodriver --version`来检查。
 - `pip install "django<2.1" "selenium<4"`
 
-## [长篇大论的git bash](git配置)
+## [长篇大论的git bash](git.md)
+
