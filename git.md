@@ -56,10 +56,8 @@ git config --global alias.lg "log --color --graph --pretty=format:'%Cred%h%Crese
 
 
 ## [中文乱码解决方案](https://segmentfault.com/a/1190000000578037)
+### git status
 
-### git add
-
-命令添加文件名含中文字符的文件时（新版好像没有用）
 
 #### 乱码例子
 
@@ -67,19 +65,8 @@ git config --global alias.lg "log --color --graph --pretty=format:'%Cred%h%Crese
 
 #### 解决
 
-编辑 Git的安装目录中的`etc\inputrc` 文件（比如，C:\Program Files\Git\etc\inputrc），查找以下2行，并修改其值，
-原先：
-
-```
-set output-meta off
-set convert-meta on
-```
-
-改为：
-
-```
-set output-meta on
-set convert-meta off
+```shell
+git config --global core.quotepath false
 ```
 
 ### git log

@@ -324,6 +324,127 @@ git diff --staged
 git ci -m "Refactor home page view to use a template"
 ```
 
+## 接着修改
+
+功能测试还是不过的，要让它通过。首先，我们要`<h1>`
+
+### *lists/templates/home.html*
+
+```html
+<html>
+    <head>
+        <title>To-Do lists</title>
+    </head>
+    <body>
+        <h1>Your To-Do lists</h1>
+    </body>
+</html>
+```
+
+测试，希望这次记得运行django
+
+```shell
+NoSuchElementException: Message: Unable to locate element: [id="id_new_item"]
+```
+
+再加呗
+
+```html
+[...]
+        <h1>Your To-Do lists</h1>
+        <input id="id_new_item" />
+[...]
+```
+
+```
+AssertionError: '' != 'Enter a to-do item'
++ Enter a to-do item
+```
+
+加占位文字
+
+```html
+<input id="id_new_item" placeholder="Enter a to-do item" />
+```
+
+```
+NoSuchElementException: Message: Unable to locate element: [id="id_list_table"]
+```
+
+加表格
+
+```html
+<input id="id_new_item" placeholder="Enter a to-do item" />
+<table id="id_list_table">
+</table>
+```
+
+```
+Traceback (most recent call last):
+  File "functional_tests.py", line 42, in test_can_start_a_list_and_retrieve_it_later
+    any(row.text == '1: Buy peacock feathers' for row in rows)
+AssertionError: False is not true
+```
+
+### *functional_tests.py*
+
+上面不太好懂，看看定位，any函数那里，那就先编写错误消息：
+
+```python
+        self.assertTrue(
+            any(row.text == '1: Buy peacock feathers' for row in rows),
+            "New to-do item did not appear in table"
+        )
+```
+
+```
+        self.assertTrue(
+            any(row.text == '1: Buy peacock feathers' for row in rows),
+            "New to-do item did not appear in table"
+        )
+```
+
+想要row的话要提交表单呢。。。那是下一章的事情了。今天也累了，进入git和总结环节吧
+
+## git总结
+
+- 功能测试
+- 单元测试
+- 测试循环
+- 重构
+
+图以后要自己画，自己诠释才行
+
+作者代码https://github.com/hjwp/book-example/
+
+> ![](TDD的总体流程.PNG)
+
+> ![](TDD双测试循环.PNG)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
