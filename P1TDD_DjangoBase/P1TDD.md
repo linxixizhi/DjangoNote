@@ -14,5 +14,6 @@
 - [使用功能测试协助安装Django](C1functionalTests/FT.md)
 - [使用unittest模块拓展功能测试](C2unittest/UT.md)
 - [使用单元测试测试简单的首页](C3testHomepage/homepage.md)
+- [测试（重构）的意义](C4testMean/testMean.md)
 - ...
 
