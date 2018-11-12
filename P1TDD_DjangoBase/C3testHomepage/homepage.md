@@ -411,7 +411,7 @@ $ git log --oneline
 
 `git diff`会显示一些tests.py中新增的文本，以及view中一些奇奇怪怪的玩意。按q就退出了，大概是vim形态。
 
-![](E:\application\websites\django\TestCaprineDjango\P1TDD_DjangoBase\C3testHomepage\gitdiff.PNG)
+![](gitdiff.PNG)
 
 `git log --oneline`，有乱码
 
@@ -428,7 +428,7 @@ be6e2ab added
 
 ### 进入git bash
 
-![](E:\application\websites\django\TestCaprineDjango\P1TDD_DjangoBase\C3testHomepage\openbash.PNG)
+![](openbash.PNG)
 
 ![](E:\application\websites\django\TestCaprineDjango\P1TDD_DjangoBase\C3testHomepage\gitbash.PNG)
 

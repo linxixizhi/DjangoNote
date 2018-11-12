@@ -2,11 +2,13 @@
 
 一些笔记，关于《[Python测试驱动开发：使用Django、Selenium和JavaScript进行Web编程（第2版）](http://www.ituring.com.cn/book/2052)》(这个网站可试读三章)
 
-环境为Windows，django2.0，与书中不同，故有些方法会有些差异。
+环境为Windows，django2.0，命令行为git bash，与书中不同，故有些操作会有些差异。详情请读：
+
+## 0[安装配置](setup.md)
 
 先做笔记，后面整理。
 
-## 0[安装配置](setup.md)
+## 
 
 ## 第一部分 [测试驱动开发](P1TDD_DjangoBase/P1TDD.md)
 
