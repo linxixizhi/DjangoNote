@@ -46,6 +46,8 @@ selenium.common.exceptions.NoSuchElementException: Message: Unable to locate ele
 > 3. 自己手动访问网站
 > 4. 在测试执行过程中使用time.sleep暂停（常用）
 
+（也叫功能测试调试技术）
+
 下面试试常用的time.sleep——错误发生前就已经休眠了，那就延长休眠时间：
 
 ### *functional_tests.py*
@@ -209,7 +211,7 @@ AssertionError: False is not true : New to-do item did not appear in table
 
 大概知道在哪里错，但不自己操作浏览器的话看不出来怎么办。
 
-但，还能“改进错误消息”，另一种功能测试的调试技术。
+但，还能“改进错误消息”，另一种功能测试调试技术。
 
 ### *functional_tests.py
 
@@ -503,3 +505,359 @@ $ git diff
 $ git add lists
 $ git commit -m "Model for list Items and associated migration"
 ```
+
+## 把POST请求中的数据存入数据库
+
+### *lists/tests.py
+
+```python
+    def test_can_save_a_POST_request(self):
+        response = self.client.post('/', data={'item_text': 'A new list item'})
+        
+        self.assertEqual(Item.objects.count(), 1)  # 111
+        new_item = Item.objects.first()  # 222
+        self.assertEqual(new_item.text, 'A new list item')  # 333
+        
+        self.assertIn('A new list item', response.content.decode())
+        self.assertTemplateUsed(response, 'home.html')
+```
+
+1. 检查有没有一个新对象存入数据库。objects.count()是objects.all().count()的简写
+2. objects.first() == objects.all()[0]
+3. 检查待办事项的文本是否正确
+
+### 代码异味？
+
+测试有点长，看起来要测很多东西。这也是一种代码异味。或许可以把它写在待办清单中？
+
+运行测试，预期失败：
+
+```shell
+$ python manage.py test lists
+[...]
+    self.assertEqual(Item.objects.count(), 1)
+AssertionError: 0 != 1
+```
+
+修改视图：
+
+### *lists/views.py*
+
+```python
+from django.shortcuts import render
+from lists.models import Item
+
+def home_page(request):
+    item = Item()
+    item.text = request.POST.get('item_text', '')
+    item.save()
+    
+    return render(request, 'home.html', {
+        'new_item_text': request.POST.get('item_text', ''),
+    })
+```
+
+测试通过！！！可以重构一下
+
+```python
+from django.shortcuts import render
+from lists.models import Item
+
+def home_page(request):
+    item = Item()
+    item.text = request.POST.get('item_text', '')
+    item.save()
+
+    return render(request, 'home.html', {
+        'new_item_text': 'item.text',
+    })
+```
+
+稍微减少代码冗余，测试也应当能通过。
+
+话说方案有好些问题，都补到清单上。
+
+![note](note.PNG)
+
+### 先解决“每次请求都保存空白事项”
+
+定义新测试，以免使原先对的测试管得太多：
+
+#### *lists/tests.py*
+
+```python
+class HomePageTest(TestCase):
+    [...]
+
+    def test_only_saves_items_when_necessary(self):
+        self.client.get('/')
+        self.assertEqual(Item.objects.count(), 0)
+```
+`AssertionError: 1 != 0`，下面修正这个问题，即“每次请求都保存空白事项”：
+
+
+### *lists/views.py
+
+```python
+def home_page(request):
+    if request.method == 'POST':
+        new_item_text = request.POST['item_text']  # 111
+        Item.objects.create(text=new_item_text)  # 222
+    else:
+        new_item_text = ''  # 111
+
+    return render(request, 'home.html', {
+        'new_item_text': new_item_text,  # 111
+    })
+```
+
+1. 使用一个名为new_item_text的变量，用`if-else`语句控制其值为POST请求的数据或是空字符串；
+2. .object.create创建Item对象，简化了不少。
+
+```shell
+Ran 4 tests in 0.021s
+
+OK
+```
+
+成功，但`if-else`语句得`new_item_text = ''`让人不爽。
+
+## 处理完POST请求后重定向
+
+视图函数有两种作用：处理用户输入、返回适当响应；前者完成，并保存到数据库中。下面处理后者。
+
+处理POST请求后一定会重定向。
+
+### * lists/tests.py*
+
+```python
+
+    def test_can_save_a_POST_request(self):
+        response = self.client.post('/', data={'item_text': 'A new list item'})
+
+        self.assertEqual(Item.objects.count(), 1)
+        new_item = Item.objects.first()
+        self.assertEqual(new_item.text, 'A new list item')
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response['location'], '/')
+```
+
+某个功能已经不需要了。。。去掉；现在要检查response是重定向，状态码是302，并让浏览器指向一个新地址。
+
+如果你用的是vsCode，会出现错误提示：E1101:Class 'Destination' has no 'objects' member。因为检查的插件不知道Django的一些变量：
+
+> Is a warning that occurs because pylint doesn't know about our special Django variables. A pylint plugin like pylint-django might do the trick.[stackoverflow](https://stackoverflow.com/questions/51828667/class-has-no-objects-member-in-django)
+
+测试：`AssertionError: 200 != 302`；来清理视图函数：
+
+### * lists/views.py
+
+```python
+from django.shortcuts import redirect, render
+from lists.models import Item
+
+def home_page(request):
+    if request.method == 'POST':
+        Item.objects.create(text=request.POST['item_text'])
+        return redirect('/')
+
+    return render(request, 'home.html')
+```
+
+### 更好的单元测试——一次只测一件事
+
+如果一个测试有多个断言，万一中间某个断言出错，就看不到后面的断言表现如何了。
+
+刚才修改的单元测试刚好需要修改：
+
+#### *lists/tests.py*
+
+```python
+    def test_can_save_a_POST_request(self):
+        response = self.client.post('/', data={'item_text': 'A new list item'})
+
+        self.assertEqual(Item.objects.count(), 1)
+        new_item = Item.objects.first()
+        self.assertEqual(new_item.text, 'A new list item')
+
+    def test_redirects_after_POST(self):
+        response = self.client.post('/', data={'item_text': 'A new list item'})
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response['location'], '/')
+```
+
+```shell
+Ran 5 tests in 0.026s
+
+OK
+```
+
+![-2](note-2.PNG)
+
+## 在模板中渲染待办事项
+
+把问题从清单划掉那瞬间，就像是看着代码通过那样。
+
+接下来要解决的问题是在表格显示多个待办事项，照例先编写单元测试：
+
+### *lists/tests.py
+
+```python
+class HomePageTest(TestCase):
+    [...]
+
+        def test_displays_all_list_items(self):
+        Item.objects.create(text='itemey 1')
+        Item.objects.create(text='itemey 2')
+
+        response = self.client.get('/')
+
+        self.assertIn('itemey 1', response.content.decode())
+        self.assertIn('itemey 2', response.content.decode())
+```
+
+> 作者：看出空行有什么用吗？它把测试分成设置-使用-断言的单元测试的典型结构。
+
+失败，才是正常的：`AssertionError: 'itemey 1' not found in '<html>\n [...]`
+
+是时候再展示一下模板的威力了：
+
+### *lists/templates/home.html
+
+```html
+        <table id="id_list_table">
+            {% for item in items %}
+                <tr><td>1: {{ item.text }}</td></tr>
+            {% endfor %}
+        </table>
+```
+
+### *lists/views.py*
+
+```python
+def home_page(request):
+    if request.method == 'POST':
+        Item.objects.create(text=request.POST['item_text'])
+        return redirect('/')
+
+    items = Item.objects.all()
+    return render(request, 'home.html', {'items': items})
+```
+
+单元测试应该就过了（毫无兴奋感）
+
+```shell
+$ python functional_tests.py
+[...]
+AssertionError: 'To-Do' not found in 'OperationalError at /'
+```
+
+不能呢，那就来尝试第三种功能测试调试技术吧：手动访问`http://localhost:8000`：
+
+![django debug](DjangoDebug.PNG)
+
+## 使用迁移创建生产数据库
+
+“没有这个表格”，看来是数据库的问题。但为啥在单元测试中一切运行良好呢？这是因为Django为单元测试创建了专用的测试数据库。
+
+那是挺好的，但我们要生产数据库，就要解决创建的问题。这里使用SQLite。这种数据库只是一个文件，而Django默认把数据库保存为db.sqlite3于项目基目录:
+
+### *superlists/settings.py
+
+```python
+[...]
+# Database
+# https://docs.djangoproject.com/en/2.0/ref/settings/#databases
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+    }
+}
+[...]
+```
+
+要创建生产数据库，要先在model.py配置好所需信息，然后：
+
+```shell
+$ python manage.py migrate
+Operations to perform:
+  Apply all migrations: admin, auth, contenttypes, lists, sessions
+Running migrations:
+  Applying contenttypes.0001_initial... OK
+  Applying auth.0001_initial... OK
+  Applying admin.0001_initial... OK
+  Applying admin.0002_logentry_remove_auto_add... OK
+  Applying contenttypes.0002_remove_content_type_name... OK
+  Applying auth.0002_alter_permission_name_max_length... OK
+  Applying auth.0003_alter_user_email_max_length... OK
+  Applying auth.0004_alter_user_username_opts... OK
+  Applying auth.0005_alter_user_last_login_null... OK
+  Applying auth.0006_require_contenttypes_0002... OK
+  Applying auth.0007_alter_validators_add_error_messages... OK
+  Applying auth.0008_alter_user_username_max_length... OK
+  Applying auth.0009_alter_user_last_name_max_length... OK
+  Applying lists.0001_initial... OK
+  Applying lists.0002_item_text... OK
+  Applying sessions.0001_initial... OK
+```
+
+可以刷新localhost页面，错误页面不见，如果还在，重启服务器再试。
+
+再运行功能测试：
+`AssertionError: '2: Use peacock feathers to make a fly' not found in ['1: Buy peacock feathers', '1: Use peacock feathers to make a fly']`
+
+快好了！序号有点小问题而已：forloop标签是个好帮手：
+
+### *lists/templates/home.html*
+
+```html
+            {% for item in items %}
+                <tr><td>{{ forloop.counter }}: {{ item.text }}</td></tr>
+            {% endfor %}
+```
+
+运行的那一瞬间，你期待着真正的结束，但好像有什么奇怪的地方——好像不止测试中的两项。为了看得更清除，打开了win10的截图工具，运行多两次功能测试，截下了两幅图：
+
+![多了什么……](deleteNeeded1.PNG)
+
+![上次的没删掉呢](deleteNeeded2.PNG)
+
+就是上次测试的时候再数据库留有数据。。。这好像是下一章的问题了，先手动清理数据库，然后完成这次的测试先吧：
+
+```shell
+rm db.sqlite3 # 要先把服务器停掉
+python manage.py migrate --noinput
+python functional_tests.py
+```
+
+`AssertionError: Finish the test!`
+
+## git总结
+
+### 做了啥？
+- 编写了一个表单，使用POST请求把新待办事项添加到清单中；
+- 创造了个简单的数据库模型，用来存储待办事项；
+- 创建数据库迁移，包括测试的和生产的。
+
+### 清单更新
+![listUpdate](listUpdate.PNG)
+
+其实吧，最大的问题是最后一个——现在所有用户共用一个清单，谁都可以“增删读改”。。。
+
+就是说，这个网站还不实用。
+
+先这样吧。
+
+### 有用的TDD概念——更新到Anki
+
+- 回归
+- 意外失败
+- 红绿灯重构
+- 三角法
+- 三则重构
+- 记在便签上的待办事项清单（有点讽刺）
+
+### git
