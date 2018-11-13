@@ -53,7 +53,7 @@ class NewVistorTest(unittest.TestCase):
         # 页面再次更新，她的清单也显示了这两个待办事项
         self.check_for_row_in_list_table('1: Buy peacock feathers')
         self.check_for_row_in_list_table('2: Use peacock feathers to make a fly')
-        
+
         # 叶秋想知道这个网站是否会保存她的清单
         # 她看到网站为她生成了一个唯一的URL
         # 而且页面中有文字介绍这个功能
@@ -62,5 +62,7 @@ class NewVistorTest(unittest.TestCase):
         # 她访问那个URL，发现她的待办事项列表还在
 
         # 她很满意，就去玩了
+
+
 if __name__ == '__main__':
     unittest.main(warnings='ignore')

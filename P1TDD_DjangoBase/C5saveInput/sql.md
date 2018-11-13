@@ -306,3 +306,200 @@ git diff
 
 git ci -a
 ```
+
+重构，就先添加一个辅助函数
+
+### *functional_tests.py*
+
+```python
+    def check_for_row_in_list_table(self, row_text):
+        table = self.browser.find_element_by_id('id_list_table')
+        rows = table.find_elements_by_tag_name('tr')
+        self.assertIn(row_text, [row.text for row in rows])
+
+    def test_can_start_a_list_and_retrieve_it_later(self):
+        [...]
+        # 她按回车键后，页面更新
+        # 待办事项表格显示了“1.买孔雀羽”
+        inputbox.send_keys(Keys.ENTER)
+        time.sleep(1)
+        self.check_for_row_in_list_table('1: Buy peacock feathers')
+        
+        # 然后页面又显示了一个文本框，可以输入其他的待办事项
+        # 她输入了'Use peacock feathers to make a fly'(“用孔雀羽做假蝇”)
+        # 叶秋做事很有条理
+        inputbox = self.browser.find_element_by_id('id_new_item')
+        inputbox.send_keys('Use peacock feathers to make a fly')
+        inputbox.send_keys(Keys.ENTER)
+        time.sleep(1)
+
+        # 页面再次更新，她的清单也显示了这两个待办事项
+        self.check_for_row_in_list_table('1: Buy peacock feathers')
+        self.check_for_row_in_list_table('2: Use peacock feathers to make a fly')
+        
+        # 叶秋想知道这个网站是否会保存她的清单
+```
+
+记得吗？重构前后要保持一致：
+
+```shell
+AssertionError: '1: Buy peacock feathers' not found in ['1: Use peacock feathers to make a fly']
+```
+
+很好，可以git了
+
+```shell
+git diff
+git commit -a
+```
+
+接下来，还要解决，怎么存储待办事项的问题。
+
+## Django ORM和第一个模型
+
+### *lists/tests.py*
+
+```python
+from lists.models import Item
+
+class ItemModelTest(TestCase):
+
+    def test_saving_and_retrieving_items(self):
+        first_item = Item()
+        first_item.text = 'The first (ever) list item'
+        first_item.save()
+
+        second_item = Item()
+        second_item.text = 'Item the second'
+        second_item.save()
+
+        saved_items = Item.objects.all()
+        self.assertEqual(saved_items.count(), 2)
+        first_saved_item = saved_items[0]
+        second_saved_item = saved_items[1]
+        self.assertEqual(first_saved_item.text, 'The first (ever) list item')
+        self.assertEqual(second_saved_item.text, 'Item the second')
+```
+
+> 作者：Django 中的ORM 有很多有用且直观的功能。现在可能是略读[Django 教程](https://docs.djangoproject.com/en/2.0/intro/tutorial02/)的好时机，这个教程很好地介绍了ORM 的功能。
+> 还有，这个单元测试写得很啰唆，因为我想借此介绍Django ORM。我不建议你在现实中也这么写。第 15 章会重写这个测试，尽可能做到精简。
+
+运行单元测试：
+
+```shell
+    from lists.models import Item
+ImportError: cannot import name 'Item'
+```
+
+进入另一个“单元测试/编写代码”循环吧！
+
+### *lists/models.py*
+
+```python
+from django.db import models
+
+class Item(object):
+    pass
+```
+
+```shell
+first_item.save()
+AttributeError: 'Item' object has no attribute 'save'
+```
+
+为了给Item类提供'save'方法，要让它继承Modle类（也让它成为Django Model）
+
+```python
+from django.db import models
+
+class Item(models.Model):
+    pass
+```
+
+噢，这次报错就多罗：
+
+### 第一个数据库迁移
+
+`django.db.utils.OperationalError: no such table: lists_item`
+
+Django中的OPM负责模型化数据库，而创建数据库由迁移（migration）负责。迁移的任务是，根据model.py，添加或删除表和列。
+
+> 你可以把迁移想成数据库使用的版本控制系统。把应用部署到线上服务器升级数据库时，迁移十分有用。
+
+现在使用makemigrations命令创建迁移：
+
+```shell
+$ python manage.py makemigrations
+Migrations for 'lists':
+  lists\migrations\0001_initial.py
+    - Create model Item
+$ ls lists/migrations
+__init__.py  __pycache__/  0001_initial.py
+```
+
+测试也有进展了：
+
+```shell
+    self.assertEqual(first_saved_item.text, 'The first (ever) list item')
+AttributeError: 'Item' object has no attribute 'text'
+```
+
+看看[入门网站](https://docs.djangoproject.com/en/2.0/intro/tutorial02/#creating-models)或者[手册](https://docs.djangoproject.com/en/2.0/ref/models/fields/)
+
+#### *lists/models.py*
+
+```python
+class Item(models.Model):
+    text = models.TextField()
+```
+
+测试：`django.db.utils.OperationalError: no such column: lists_item.text`
+
+### 添加字段就要创建新迁移
+
+如题，测试能告诉我们这点。
+
+```shell
+$ python manage.py makemigrations
+You are trying to add a non-nullable field 'text' to item without a default; we can\'t do that (the database needs something to populate existing rows).
+Please select a fix:
+ 1) Provide a one-off default now (will be set on all existing rows with a null value for this column)
+ 2) Quit, and let me add a default in models.py
+Select an option: 2
+```
+
+默认不能没有没有default，加上呗：
+
+```python
+from django.db import models
+
+class Item(models.Model):
+    text = models.TextField(default='')
+```
+
+成功！
+
+```shell
+$ python manage.py makemigrations
+Migrations for 'lists':
+  lists\migrations\0002_item_text.py
+    - Add field text to item
+```
+测试也成功了！
+
+```shell
+$ python manage.py test lists
+[...]
+Ran 3 tests in 0.021s
+
+OK
+```
+
+git 庆祝一下吧：
+
+```shell
+$ git st
+$ git diff
+$ git add lists
+$ git commit -m "Model for list Items and associated migration"
+```
