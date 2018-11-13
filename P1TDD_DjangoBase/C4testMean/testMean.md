@@ -367,6 +367,8 @@ AssertionError: '' != 'Enter a to-do item'
 <input id="id_new_item" placeholder="Enter a to-do item" />
 ```
 
+- placeholder 属性提供可描述输入字段预期值的提示信息（hint）
+
 ```
 NoSuchElementException: Message: Unable to locate element: [id="id_list_table"]
 ```
