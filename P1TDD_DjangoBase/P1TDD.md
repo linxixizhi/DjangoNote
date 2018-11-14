@@ -16,5 +16,6 @@
 - [使用单元测试测试简单的首页](C3testHomepage/homepage.md)
 - [测试（重构）的意义](C4testMean/testMean.md)
 - [保存用户输入：测试数据库](C5saveInput/sql.md)
-- ...
+- [改进功能测试：确保隔离，去掉含糊的休眠](C6UpdateUT/UpdateUT.md)
+- [一上一上又一上，一直上到高山上](C7MinPace/MinPace.md)
 

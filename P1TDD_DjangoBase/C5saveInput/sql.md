@@ -861,3 +861,9 @@ python functional_tests.py
 - 记在便签上的待办事项清单（有点讽刺）
 
 ### git
+
+```shell
+git add lists
+git commit -m "Redirect after POST, and show all items in template"
+git tag end-of-chapter-05
+```
