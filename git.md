@@ -86,21 +86,13 @@ be6e2ab added
 33ef4b9 This is about django study.
 ```
 
-```
-git config --global i18n.logoutputencoding utf-8
-```
-
-
-
-## 进入git bash
-
-
-
 ```bash
 git config --global i18n.logoutputencoding utf-8
 ```
 
-[参考网站](https://segmentfault.com/a/1190000000578037)，但目前，`powershell`里的乱码无解。
+[参考网站](https://segmentfault.com/a/1190000000578037)，但目前，`powershell`里的乱码貌似无解。
+
+## 进入git bash
 
 ### 小技巧，快速打开
 
